@@ -10,5 +10,5 @@ html:is([lang=en],[lang=es]) .tealay-case{font-family:HyejinNotoSans,Arial,sans-
 @media(max-width:600px){.case-cans{grid-column:1/-1;padding:10px 15px 35px;gap:25px}.case-cans img{height:300px;max-width:110px}.flavour-code{grid-column:1;grid-row:2/6;font-size:65px}}
 @media(prefers-reduced-motion:reduce){.case-cans img{transition:none}.case-flavour:hover .case-cans img{transform:none}}
 .tealay-case .case-motion-pending{opacity:0;transform:translateY(24px);will-change:opacity,transform}
-.tealay-case .case-hero-art.case-motion-pending{transform:translateY(14px)}
+.tealay-case :is(.case-hero-art,.case-reveal).case-motion-pending{transform:none}
 @media(prefers-reduced-motion:reduce){.tealay-case .case-motion-pending{opacity:1;transform:none;will-change:auto}}
