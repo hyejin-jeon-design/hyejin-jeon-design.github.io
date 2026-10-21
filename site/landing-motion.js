@@ -25,19 +25,20 @@ let scheduled=false;
 function updateScroll(){scheduled=false;if(reduce.matches)return;const r=hero.getBoundingClientRect();const progress=Math.max(0,Math.min(1,-r.top/r.height));hero.style.setProperty('--hero-pan',`${progress*65}px`);hero.style.setProperty('--hero-scale',`${1.06-progress*.04}`);hero.style.setProperty('--brand-pan',`${-progress*55}px`);hero.style.setProperty('--brand-opacity',`${1-progress*.35}`);}
 addEventListener('scroll',()=>{if(!scheduled){scheduled=true;requestAnimationFrame(updateScroll);}},{passive:true});
 const onScreen=new IntersectionObserver(entries=>{for(const e of entries){if(!e.isIntersecting)continue;const target=e.target;if(!reduce.matches)target.animate([{opacity:0,transform:'translateY(48px)'},{opacity:1,transform:'translateY(0)'}],{duration:900,easing:'cubic-bezier(.16,1,.3,1)',fill:'both'});onScreen.unobserve(target);}},{threshold:.12});
-document.querySelectorAll('.editorial-grid,.work-head,.work-composition,.category-links,.contact-section h2').forEach(n=>onScreen.observe(n));
+document.querySelectorAll('.editorial-grid,.work-composition,.category-links,.contact-section h2').forEach(n=>onScreen.observe(n));
 // Start each entrance when its content becomes visible, including below the
 // fold on phones, after the responsive headline has been grouped.
 const headline=document.querySelector('.display-title');
 const signature=document.querySelector('.hero-brand');
-const entrances=new Map([[headline,{played:false,animations:[]}],[signature,{played:false,animations:[]}]]);
+const workTitle=document.querySelector('.work-head h2');
+const entrances=new Map([[headline,{played:false,animations:[]}],[signature,{played:false,animations:[]}],[workTitle,{played:false,animations:[]}]]);
 function playEntrance(target){
  const state=entrances.get(target);
  if(!state||state.played||reduce.matches||document.hidden||target.closest('[hidden]'))return;
  const r=target.getBoundingClientRect();
  if(r.bottom<=0||r.top>=innerHeight||r.width===0||r.height===0)return;
  state.played=true;
- if(target===headline){
+ if(target===headline||target===workTitle){
   const distance=Math.min(innerWidth*.13,190);
   state.animations=[...target.querySelectorAll('[data-t]')].map((n,i)=>n.animate([
    {opacity:.15,transform:`translate(${(i%2===0?-1:1)*distance}px,12px)`},
