@@ -21,7 +21,40 @@ container.innerHTML=`<div class="case-top"><a href="#/portfolio">◂ ${c.back}</
 <section class="case-campaign"><div class="case-section"><div class="case-label">06 / CAMPAIGN</div><div class="case-two"><h2>${c.campaign}</h2><p class="case-body">${c.campaignP}</p></div></div><figure class="case-reveal">${image('campaign','TEALAY campaign key visual')}</figure></section>
 <section class="case-section case-end"><span class="case-label">07 / TEALAY</span><h2>${c.ending}</h2><p>${c.endP}</p><a href="#/portfolio"><span>${c.back}</span><svg class="work-return-arrow" width="16" height="16" viewBox="0 0 18 18" fill="none" aria-hidden="true" focusable="false"><path d="M4 14L14 4M4 4H14V14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a><small>${c.note}</small></section>`;
 container.querySelector('.case-explore').addEventListener('click',()=>{const target=container.querySelector('#case-overview');scrollTo({top:scrollY+target.getBoundingClientRect().top-20,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});});
-observer?.disconnect();const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;observer=new IntersectionObserver(entries=>{for(const e of entries){if(!e.isIntersecting)continue;if(!reduce)e.target.animate([{opacity:0,transform:'translateY(35px)'},{opacity:1,transform:'translateY(0)'}],{duration:900,easing:'cubic-bezier(.16,1,.3,1)',fill:'backwards'});observer.unobserve(e.target);}},{threshold:.08});container.querySelectorAll('.case-two,.case-reveal,.case-principles').forEach(e=>observer.observe(e));if(!reduce)container.querySelector('.case-hero-copy').animate([{opacity:0,transform:'translateY(28px)'},{opacity:1,transform:'translateY(0)'}],{duration:1100,easing:'cubic-bezier(.16,1,.3,1)'});
+observer?.disconnect();
+const motion=matchMedia('(prefers-reduced-motion: reduce)');
+const heroImage=container.querySelector('.case-hero-art img');
+heroImage.loading='eager';heroImage.fetchPriority='high';
+const targets=[...container.querySelectorAll('.case-hero-copy,.case-hero-art,.case-two,.case-reveal,.case-principles')];
+if(!motion.matches){
+ // Establish the initial state before the browser paints: visible content must
+ // never flash back to transparent when the intersection callback arrives.
+ targets.forEach(target=>target.classList.add('case-motion-pending'));
+ const current=new IntersectionObserver(entries=>{
+  for(const entry of entries){
+   if(!entry.isIntersecting)continue;
+   const target=entry.target;
+   current.unobserve(target);
+   if(motion.matches){target.classList.remove('case-motion-pending');continue;}
+   const art=target.classList.contains('case-hero-art');
+   const animation=target.animate([
+    {opacity:0,transform:`translateY(${art?14:24}px)`},
+    {opacity:1,transform:'translateY(0)'}
+   ],{duration:900,easing:'cubic-bezier(.22,1,.36,1)',fill:'both'});
+   const settle=()=>{target.classList.remove('case-motion-pending');animation.cancel();};
+   animation.finished.then(settle,()=>target.classList.remove('case-motion-pending'));
+  }
+ },{threshold:.08});
+ observer=current;
+ // The page can be rendered while hidden, then opened through the router.
+ // IntersectionObserver starts each entrance only after that page is shown.
+ Promise.race([document.fonts.ready,new Promise(resolve=>setTimeout(resolve,1000))]).then(()=>{
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+   if(observer!==current)return;
+   targets.filter(target=>target.isConnected).forEach(target=>current.observe(target));
+  }));
+ });
+}
 };
 addEventListener('scroll',()=>{const c=document.querySelector('.tealay-case');if(!c||c.hidden)return;const progress=c.querySelector('.case-progress i');if(progress)progress.style.transform=`scaleX(${Math.min(1,Math.max(0,(scrollY-c.offsetTop)/(c.offsetHeight-innerHeight)))})`;},{passive:true});
 renderProject();
